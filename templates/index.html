@@ -145,8 +145,9 @@
     /* Cards & Content */
     .content-area {
       padding: 40px 60px;
-      max-width: 1400px;
+      max-width: 1800px;
       margin: 0 auto;
+      width: 100%;
     }
 
     .panel {
@@ -491,7 +492,7 @@
           <p class="text-gray-500">Connect to messaging platforms.</p>
         </header>
 
-        <div class="space-y-4 max-w-3xl">
+        <div class="space-y-4 w-full">
           <template x-for="(conf, key) in channelList" :key="key">
             <div class="panel flex flex-col gap-4">
               <div class="flex items-center justify-between">
@@ -533,7 +534,7 @@
           <p class="text-gray-500">System configuration and defaults.</p>
         </header>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 w-full">
           <div class="panel">
             <h3 class="panel-header">Agent Behaviour</h3>
             <div class="space-y-4">
