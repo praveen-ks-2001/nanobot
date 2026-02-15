@@ -1,31 +1,34 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>nanobot</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
       darkMode: 'class',
       theme: {
         extend: {
-          fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
           colors: {
-            gray: { 850: '#1f2937', 950: '#0a0a0a' }
+            background: '#050505',
+            surface: '#0F0F0F',
+            surface2: '#1A1A1A',
+            border: '#2A2A2A',
+            accent: '#3B82F6',
           }
         }
       }
     };
-    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      document.documentElement.classList.add('dark');
-    }
-    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
-      document.documentElement.classList.toggle('dark', e.matches);
-    });
   </script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
   <style>
@@ -34,381 +37,446 @@
     }
 
     body {
-      @apply bg-gray-50 text-gray-900 dark:bg-black dark:text-gray-200 antialiased;
+      background-color: #050505;
+      color: #E5E5E5;
+      font-family: 'Inter', sans-serif;
+      -webkit-font-smoothing: antialiased;
     }
 
-    /* Layout */
-    .app-shell {
-      display: grid;
-      grid-template-columns: 260px 1fr;
-      min-height: 100vh;
-    }
-
-    .sidebar {
-      @apply border-r border-gray-200 dark:border-white/10 p-4 flex flex-col justify-between bg-white dark:bg-black sticky top-0 h-screen;
-    }
-
-    .main-content {
-      @apply p-8 max-w-6xl mx-auto w-full overflow-y-auto;
-    }
-
-    /* Components */
-    .nav-item {
-      @apply flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5 hover:text-gray-900 dark:hover:text-white transition-colors cursor-pointer;
-    }
-
-    .nav-item.active {
-      @apply bg-gray-100 dark:bg-white/10 text-gray-900 dark:text-white;
-    }
-
-    .card {
-      @apply bg-white dark:bg-gray-950/50 border border-gray-200 dark:border-white/10 rounded-xl p-6 transition-all;
-    }
-
-    .card-hover {
-      @apply hover:border-gray-300 dark:hover:border-white/20;
-    }
-
-    .input-group {
-      @apply space-y-1.5;
-    }
-
-    .input-label {
-      @apply block text-xs font-medium text-gray-500 dark:text-gray-400;
-    }
-
-    .input-field {
-      @apply w-full bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500/50 focus:border-blue-500/50 transition shadow-sm;
-    }
-
-    .btn-primary {
-      @apply px-4 py-2 bg-gray-900 dark:bg-white text-white dark:text-black rounded-lg text-sm font-medium hover:opacity-90 transition disabled:opacity-50;
-    }
-
-    .btn-secondary {
-      @apply px-3 py-1.5 bg-gray-100 dark:bg-white/10 text-gray-700 dark:text-gray-200 rounded-lg text-xs font-medium hover:bg-gray-200 dark:hover:bg-white/15 transition;
-    }
-
-    .status-dot {
-      @apply w-2 h-2 rounded-full;
-    }
-
-    .status-dot.running {
-      @apply bg-emerald-500 shadow-[0_0_8px_rgba(16, 185, 129, 0.4)];
-    }
-
-    .status-dot.stopped {
-      @apply bg-gray-400;
-    }
-
-    .status-dot.error {
-      @apply bg-red-500 shadow-[0_0_8px_rgba(239, 68, 68, 0.4)];
-    }
-
-    /* Transitions */
-    .fade-enter {
-      animation: fadeIn .2s ease-out;
-    }
-
-    @keyframes fadeIn {
-      from {
-        opacity: 0;
-        transform: translateY(4px);
-      }
-
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    /* Scrollbar */
+    /* Custom Scrollbar */
     ::-webkit-scrollbar {
       width: 6px;
       height: 6px;
     }
 
     ::-webkit-scrollbar-thumb {
-      @apply bg-gray-300 dark:bg-white/20 rounded-full;
+      background: #333;
+      border-radius: 3px;
     }
 
     ::-webkit-scrollbar-track {
-      @apply bg-transparent;
+      background: transparent;
     }
 
-    /* Terminal */
+    /* Layout */
+    .app-layout {
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      background: #050505;
+      border-right: 1px solid #1f1f1f;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Navigation Stepper */
+    .nav-wrapper {
+      position: relative;
+      padding-left: 20px;
+    }
+
+    .nav-line {
+      position: absolute;
+      left: 27px;
+      top: 12px;
+      bottom: 12px;
+      width: 1px;
+      background: #1f1f1f;
+      z-index: 0;
+    }
+
+    .nav-item {
+      position: relative;
+      display: flex;
+      items-center;
+      padding: 6px 0;
+      cursor: pointer;
+      color: #888;
+      transition: color 0.2s;
+      z-index: 1;
+    }
+
+    .nav-item:hover {
+      color: #fff;
+    }
+
+    .nav-item.active {
+      color: #fff;
+      font-weight: 500;
+    }
+
+    .nav-dot {
+      width: 15px;
+      height: 15px;
+      margin-right: 12px;
+      background: #050505;
+      border: 1px solid #333;
+      border-radius: 50%;
+      display: flex;
+      items-center;
+      justify-center;
+      transition: all 0.2s;
+    }
+
+    .nav-item.active .nav-dot {
+      border-color: #fff;
+      background: #fff;
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+    }
+
+    .nav-item.active .nav-dot::after {
+      content: '';
+      width: 5px;
+      height: 5px;
+      background: #000;
+      border-radius: 50%;
+    }
+
+    .nav-label {
+      font-size: 13px;
+    }
+
+    /* Cards & Content */
+    .content-area {
+      padding: 40px 60px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .panel {
+      background: #0F0F0F;
+      border: 1px solid #1A1A1A;
+      border-radius: 12px;
+      padding: 24px;
+      transition: border-color 0.2s;
+    }
+
+    .panel:hover {
+      border-color: #2A2A2A;
+    }
+
+    .panel-header {
+      font-size: 16px;
+      font-weight: 500;
+      margin-bottom: 16px;
+      color: #fff;
+      display: flex;
+      items-center;
+      justify-content: space-between;
+    }
+
+    .input-field {
+      width: 100%;
+      background: #080808;
+      border: 1px solid #222;
+      color: #ddd;
+      padding: 10px 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      transition: border-color 0.2s;
+    }
+
+    .input-field:focus {
+      outline: none;
+      border-color: #444;
+    }
+
+    .input-label {
+      display: block;
+      font-size: 11px;
+      text-transform: uppercase;
+      color: #666;
+      margin-bottom: 6px;
+      letter-spacing: 0.5px;
+    }
+
+    /* Buttons */
+    .btn {
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      transition: all 0.2s;
+      display: inline-flex;
+      items-center;
+      gap: 8px;
+    }
+
+    .btn-primary {
+      background: #fff;
+      color: #000;
+      hover: opacity-90;
+    }
+
+    .btn-primary:hover {
+      background: #e5e5e5;
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: #888;
+      border: 1px solid #222;
+    }
+
+    .btn-ghost:hover {
+      border-color: #444;
+      color: #fff;
+    }
+
+    /* Toggles */
+    .toggle-checkbox {
+      appearance: none;
+      width: 36px;
+      height: 20px;
+      background: #222;
+      border-radius: 20px;
+      position: relative;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .toggle-checkbox::after {
+      content: '';
+      position: absolute;
+      left: 2px;
+      top: 2px;
+      width: 16px;
+      height: 16px;
+      background: #666;
+      border-radius: 50%;
+      transition: transform 0.2s, background 0.2s;
+    }
+
+    .toggle-checkbox:checked {
+      background: #fff;
+    }
+
+    .toggle-checkbox:checked::after {
+      transform: translateX(16px);
+      background: #000;
+    }
+
+    /* Logs */
     .terminal {
-      @apply font-mono text-xs bg-gray-900 text-gray-300 p-4 rounded-xl border border-white/10 h-[600px] overflow-y-auto leading-relaxed;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      line-height: 1.6;
+      color: #aaa;
+      background: #080808;
+      border: 1px solid #1A1A1A;
+      border-radius: 8px;
+      padding: 16px;
+      height: 500px;
+      overflow-y: auto;
+    }
+
+    .log-line {
+      border-left: 2px solid transparent;
+      padding-left: 8px;
+    }
+
+    .log-line:hover {
+      border-left-color: #333;
+      background: #0c0c0c;
+      color: #ddd;
+    }
+
+    /* Status Indicator */
+    .status-badge {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      opacity: 0.6;
+    }
+
+    .status-badge.running {
+      background: #10B981;
+      box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
+      opacity: 1;
+    }
+
+    .status-badge.stopped {
+      background: #6B7280;
     }
   </style>
 </head>
 
 <body x-data="app()" x-init="init()" x-cloak>
 
-  <div class="app-shell" :class="{'grid-cols-[0_1fr]': !sidebarOpen, 'md:grid-cols-[260px_1fr]': true}">
+  <div class="app-layout">
 
     <!-- Sidebar -->
-    <aside class="sidebar" x-show="sidebarOpen" x-transition:enter="transition ease-out duration-200"
-      x-transition:enter-start="-translate-x-full" x-transition:enter-end="translate-x-0">
-      <div>
-        <!-- Brand -->
-        <div class="flex items-center gap-3 px-3 mb-8">
-          <div
-            class="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold shadow-lg shadow-blue-500/20">
-            NB
+    <aside class="sidebar">
+      <div class="p-6 pb-2">
+        <div class="flex items-center gap-3 mb-8">
+          <div class="w-8 h-8 bg-white text-black rounded-lg flex items-center justify-center font-bold text-sm">NB
           </div>
           <div>
-            <h1 class="font-bold text-sm leading-tight">Nanobot</h1>
-            <div class="flex items-center gap-1.5 mt-0.5">
-              <div class="status-dot" :class="status.gateway?.state || 'stopped'"></div>
-              <span class="text-[10px] uppercase tracking-wider font-semibold text-gray-500 dark:text-gray-400"
-                x-text="status.gateway?.state || 'Offline'"></span>
+            <div class="font-medium text-sm">Nanobot</div>
+            <div class="flex items-center gap-2 mt-1">
+              <div class="status-badge" :class="status.gateway?.state || 'stopped'"></div>
+              <span class="text-[10px] text-gray-500 uppercase tracking-wider"
+                x-text="status.gateway?.state || 'OFFLINE'"></span>
             </div>
           </div>
         </div>
 
-        <!-- Navigation -->
-        <nav class="space-y-1">
-          <a @click="view = 'dashboard'" class="nav-item" :class="{'active': view === 'dashboard'}">
-            <svg class="w-4 h-4 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z">
-              </path>
-            </svg>
-            Overview
-          </a>
-          <a @click="view = 'providers'" class="nav-item" :class="{'active': view === 'providers'}">
-            <svg class="w-4 h-4 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z">
-              </path>
-            </svg>
-            AI Providers
-            <span x-show="activeProviders.length"
-              class="ml-auto text-[10px] font-bold bg-white/10 px-1.5 py-0.5 rounded text-gray-400"
-              x-text="activeProviders.length"></span>
-          </a>
-          <a @click="view = 'channels'" class="nav-item" :class="{'active': view === 'channels'}">
-            <svg class="w-4 h-4 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z">
-              </path>
-            </svg>
-            Channels
-            <span x-show="activeChannels.length"
-              class="ml-auto text-[10px] font-bold bg-white/10 px-1.5 py-0.5 rounded text-gray-400"
-              x-text="activeChannels.length"></span>
-          </a>
-          <a @click="view = 'settings'" class="nav-item" :class="{'active': view === 'settings'}">
-            <svg class="w-4 h-4 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z">
-              </path>
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-            </svg>
-            Settings
-          </a>
-          <a @click="view = 'logs'" class="nav-item" :class="{'active': view === 'logs'}">
-            <svg class="w-4 h-4 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-            </svg>
-            Logs
-          </a>
-        </nav>
+        <div class="text-[10px] text-gray-600 font-bold uppercase tracking-widest mb-4 pl-[26px]">Setup Workflow</div>
+
+        <div class="nav-wrapper">
+          <div class="nav-line"></div>
+
+          <div class="nav-item" :class="view === 'overview' && 'active'" @click="view = 'overview'">
+            <div class="nav-dot"></div>
+            <span class="nav-label">Overview</span>
+          </div>
+
+          <div class="nav-item" :class="view === 'providers' && 'active'" @click="view = 'providers'">
+            <div class="nav-dot"></div>
+            <span class="nav-label">AI Providers</span>
+          </div>
+
+          <div class="nav-item" :class="view === 'channels' && 'active'" @click="view = 'channels'">
+            <div class="nav-dot"></div>
+            <span class="nav-label">Channels</span>
+          </div>
+        </div>
+
+        <div class="text-[10px] text-gray-600 font-bold uppercase tracking-widest mt-8 mb-4 pl-[26px]">System</div>
+
+        <div class="nav-wrapper">
+          <div class="nav-item" :class="view === 'settings' && 'active'" @click="view = 'settings'">
+            <div class="nav-dot" style="border-radius: 4px; width: 12px; height: 12px; margin-left: 2px;"></div>
+            <span class="nav-label">Settings</span>
+          </div>
+
+          <div class="nav-item" :class="view === 'logs' && 'active'" @click="view = 'logs'">
+            <div class="nav-dot" style="border-radius: 4px; width: 12px; height: 12px; margin-left: 2px;"></div>
+            <span class="nav-label">Logs</span>
+          </div>
+        </div>
       </div>
 
-      <!-- Footer Actions -->
-      <div class="space-y-2 pt-4 border-t border-gray-200 dark:border-white/10">
-        <div class="grid grid-cols-2 gap-2">
+      <div class="mt-auto p-6 border-t border-[#1A1A1A]">
+        <div class="grid grid-cols-2 gap-2 mb-3">
           <button @click="startGateway()" :disabled="status.gateway?.state === 'running'"
-            class="btn-secondary text-center justify-center flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed">
-            <div class="w-1.5 h-1.5 rounded-full bg-emerald-500"></div> Start
-          </button>
+            class="btn btn-ghost justify-center text-xs py-1.5 disabled:opacity-30">Start</button>
           <button @click="stopGateway()" :disabled="status.gateway?.state === 'stopped'"
-            class="btn-secondary text-center justify-center flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed">
-            <div class="w-1.5 h-1.5 rounded-full bg-red-500"></div> Stop
-          </button>
+            class="btn btn-ghost justify-center text-xs py-1.5 disabled:opacity-30 border-red-900/30 text-red-500 hover:border-red-500 hover:text-red-400">Stop</button>
         </div>
-        <button @click="restartGateway()" class="btn-secondary w-full text-center">Restart Gateway</button>
-        <button @click="saveConfig()" class="btn-primary w-full mt-4 flex items-center justify-center gap-2">
+        <button @click="saveConfig()" class="btn btn-primary w-full justify-center">
           <span x-show="!saving">Save Changes</span>
-          <span x-show="saving" class="animate-pulse">Saving...</span>
+          <span x-show="saving" class="opacity-50">Saving...</span>
         </button>
-        <div class="flex items-center gap-2 mt-2 px-1">
-          <input type="checkbox" id="restartCheck"
-            class="rounded bg-gray-100 border-gray-300 dark:bg-gray-800 dark:border-gray-600"
-            x-model="restartAfterSave">
-          <label for="restartCheck" class="text-[10px] text-gray-500 dark:text-gray-400">Restart on save</label>
-        </div>
       </div>
     </aside>
 
     <!-- Main Content -->
-    <main class="main-content fade-enter">
+    <main class="content-area" x-transition.opacity.duration.300ms>
 
-      <!-- Top Bar (Mobile) -->
-      <div class="md:hidden flex items-center justify-between mb-6">
-        <div class="flex items-center gap-3">
-          <div
-            class="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold">
-            NB</div>
-          <span class="font-bold text-sm">Nanobot</span>
-        </div>
-        <button @click="sidebarOpen = !sidebarOpen" class="p-2 rounded-lg bg-gray-100 dark:bg-white/10">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-          </svg>
-        </button>
-      </div>
-
-      <!-- Dashboard View -->
-      <div x-show="view === 'dashboard'">
-        <header class="mb-8">
-          <h2 class="text-2xl font-bold mb-2">Overview</h2>
-          <p class="text-gray-500 dark:text-gray-400 text-sm">System status and configuration summary.</p>
+      <!-- Overview -->
+      <div x-show="view === 'overview'">
+        <header class="mb-10">
+          <h1 class="text-3xl font-light tracking-tight text-white mb-2">Overview</h1>
+          <p class="text-gray-500 max-w-xl">Welcome to Nanobot. Configure your agents and monitor system health from
+            this centralized dashboard.</p>
         </header>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <!-- Health Card -->
-          <div class="card relative overflow-hidden group">
-            <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-              <svg class="w-24 h-24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z">
-                </path>
-              </svg>
-            </div>
-            <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-4">System Status</h3>
-            <div class="flex items-baseline gap-2 mb-1">
-              <span class="text-2xl font-bold capitalize" x-text="status.gateway?.state || 'Unknown'"></span>
-            </div>
-            <div class="text-xs text-gray-500" x-show="status.gateway?.uptime">
-              Uptime: <span x-text="formatUptime(status.gateway?.uptime)"></span>
-            </div>
-          </div>
-
-          <!-- Active Providers -->
-          <div class="card relative overflow-hidden group">
-            <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-              <svg class="w-24 h-24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                  d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10">
-                </path>
-              </svg>
-            </div>
-            <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-4">AI Providers</h3>
-            <div class="flex items-baseline gap-2 mb-1">
-              <span class="text-2xl font-bold" x-text="activeProviders.length"></span>
-              <span class="text-sm text-gray-500">active</span>
-            </div>
-            <div class="flex -space-x-2 mt-3" x-show="activeProviders.length">
-              <template x-for="name in activeProviders">
-                <div
-                  class="w-6 h-6 rounded-full bg-gray-200 dark:bg-gray-800 border-2 border-white dark:border-gray-900 flex items-center justify-center text-[8px] font-bold uppercase"
-                  x-text="name[0]"></div>
-              </template>
-            </div>
-          </div>
-
-          <!-- Active Channels -->
-          <div class="card relative overflow-hidden group">
-            <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-              <svg class="w-24 h-24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                  d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z">
-                </path>
-              </svg>
-            </div>
-            <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-4">Channels</h3>
-            <div class="flex items-baseline gap-2 mb-1">
-              <span class="text-2xl font-bold" x-text="activeChannels.length"></span>
-              <span class="text-sm text-gray-500">enabled</span>
-            </div>
-            <div class="flex -space-x-2 mt-3" x-show="activeChannels.length">
-              <template x-for="name in activeChannels">
-                <div
-                  class="w-6 h-6 rounded-full bg-gray-200 dark:bg-gray-800 border-2 border-white dark:border-gray-900 flex items-center justify-center text-[8px] font-bold uppercase"
-                  x-text="name[0]"></div>
-              </template>
-            </div>
-          </div>
-        </div>
-
-        <!-- Getting Started Banner (Conditional) -->
-        <div x-show="!hasProvider || !hasChannel"
-          class="bg-gradient-to-r from-blue-900/10 to-purple-900/10 border border-blue-500/20 rounded-xl p-6 mb-8">
-          <h3 class="text-lg font-semibold mb-2">Welcome to Nanobot</h3>
-          <p class="text-sm text-gray-500 dark:text-gray-400 mb-4 max-w-2xl">Nanobot is a lightweight agent framework.
-            To get started, you need to connect at least one AI provider and enable one messaging channel.</p>
-          <div class="flex gap-3">
-            <button @click="view = 'providers'" class="btn-primary">Connect Provider</button>
-            <button @click="view = 'channels'" class="btn-secondary">Setup Channel</button>
-          </div>
-        </div>
-
-        <!-- Recent Logs Preview -->
-        <div>
-          <div class="flex items-center justify-between mb-4">
-            <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">Recent Activity</h3>
-            <button @click="view = 'logs'" class="text-xs text-blue-500 hover:text-blue-400">View all logs →</button>
-          </div>
-          <div class="card bg-gray-900 border-gray-800 p-0 overflow-hidden">
-            <div class="p-4 font-mono text-xs text-gray-400 space-y-1 h-32 overflow-hidden relative">
-              <div
-                class="absolute bottom-0 left-0 w-full h-12 bg-gradient-to-t from-gray-900 to-transparent pointer-events-none">
+        <!-- Setup Banner -->
+        <div class="panel mb-8 bg-[#0A0A0A] border-[#222]" x-show="!isSetupComplete">
+          <div class="flex items-start gap-4">
+            <div
+              class="w-8 h-8 rounded-full bg-white text-black flex items-center justify-center font-bold text-sm shrink-0">
+              1</div>
+            <div>
+              <h3 class="text-white font-medium mb-1">Getting Started</h3>
+              <p class="text-gray-500 text-sm mb-4 max-w-2xl">To activate your agent, connect an AI provider and enable
+                a messaging channel.</p>
+              <div class="flex gap-3">
+                <button @click="view = 'providers'"
+                  class="text-sm border-b border-gray-600 hover:border-white hover:text-white transition-colors pb-0.5"
+                  :class="hasProvider ? 'text-emerald-500 border-emerald-500' : 'text-gray-400'">
+                  1. Configure Provider <span x-show="hasProvider">✓</span>
+                </button>
+                <button @click="view = 'channels'"
+                  class="text-sm border-b border-gray-600 hover:border-white hover:text-white transition-colors pb-0.5"
+                  :class="hasChannel ? 'text-emerald-500 border-emerald-500' : 'text-gray-400'">
+                  2. Enable Channel <span x-show="hasChannel">✓</span>
+                </button>
               </div>
-              <template x-for="line in logs.slice(-5)">
-                <div class="truncate opacity-80" x-text="line"></div>
-              </template>
-              <div x-show="logs.length === 0" class="text-gray-600 italic">No logs generated yet...</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div class="panel flex flex-col justify-between h-32">
+            <div class="text-xs text-gray-500 uppercase tracking-wider">System Status</div>
+            <div class="flex items-end justify-between">
+              <span class="text-2xl text-white capitalize" x-text="status.gateway?.state || 'Unknown'"></span>
+              <div class="status-badge" :class="status.gateway?.state || 'stopped'"></div>
+            </div>
+          </div>
+
+          <div class="panel flex flex-col justify-between h-32 cursor-pointer hover:bg-[#151515] transition-colors"
+            @click="view = 'providers'">
+            <div class="text-xs text-gray-500 uppercase tracking-wider">Active Providers</div>
+            <div class="flex items-end justify-between">
+              <span class="text-2xl text-white" x-text="activeProviders.length"></span>
+              <div class="flex -space-x-2">
+                <template x-for="p in activeProviders">
+                  <div
+                    class="w-6 h-6 rounded-full bg-[#333] border border-black flex items-center justify-center text-[8px]"
+                    x-text="p[0].toUpperCase()"></div>
+                </template>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel flex flex-col justify-between h-32 cursor-pointer hover:bg-[#151515] transition-colors"
+            @click="view = 'channels'">
+            <div class="text-xs text-gray-500 uppercase tracking-wider">Enabled Channels</div>
+            <div class="flex items-end justify-between">
+              <span class="text-2xl text-white" x-text="activeChannels.length"></span>
+              <span class="text-xs text-gray-600">messaging platforms</span>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Providers View -->
+      <!-- Providers -->
       <div x-show="view === 'providers'">
-        <header class="mb-8">
-          <h2 class="text-2xl font-bold mb-2">AI Providers</h2>
-          <p class="text-gray-500 dark:text-gray-400 text-sm">Configure API keys for the LLM services you want to use.
-          </p>
+        <header class="mb-10">
+          <h1 class="text-3xl font-light tracking-tight text-white mb-2">AI Providers</h1>
+          <p class="text-gray-500">Manage API keys and endpoints for LLM services.</p>
         </header>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <template x-for="p in providerList" :key="p.key">
-            <div class="card card-hover cursor-pointer group"
-              :class="{'ring-1 ring-blue-500/50 bg-blue-500/5': isProviderConfigured(p.key)}" x-data="{ open: false }">
-              <div class="flex items-center justify-between mb-4" @click="open = !open">
+            <div class="panel group" :class="{'border-white/20 bg-[#161616]': isProviderConfigured(p.key)}">
+              <div class="flex items-center justify-between mb-4">
                 <div class="flex items-center gap-3">
                   <div
-                    class="w-10 h-10 rounded-lg flex items-center justify-center text-lg font-bold bg-gray-100 dark:bg-white/5 text-gray-500 dark:text-gray-400 group-hover:scale-105 transition-transform"
-                    :class="{'!bg-blue-500/10 !text-blue-500': isProviderConfigured(p.key)}">
-                    <span x-text="p.label[0]"></span>
-                  </div>
-                  <div>
-                    <h3 class="font-medium text-sm" x-text="p.label"></h3>
-                    <div class="text-[10px] text-gray-400"
-                      x-text="isProviderConfigured(p.key) ? 'Configured' : 'Not configured'"></div>
-                  </div>
+                    class="w-8 h-8 rounded bg-[#222] flex items-center justify-center text-xs font-bold text-gray-400 group-hover:text-white transition-colors"
+                    x-text="p.label[0]"></div>
+                  <span class="font-medium text-gray-300" x-text="p.label"></span>
                 </div>
-                <div class="text-gray-400 transition-transform duration-200" :class="{'rotate-180': open}">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                  </svg>
+                <div class="w-2 h-2 rounded-full" :class="isProviderConfigured(p.key) ? 'bg-emerald-500' : 'bg-[#222]'">
                 </div>
               </div>
-
-              <div x-show="open" x-transition class="space-y-3 pt-2 border-t border-gray-100 dark:border-white/5">
-                <div class="input-group">
-                  <label class="input-label">API Key</label>
+              <div class="space-y-3">
+                <div>
                   <input type="password" class="input-field" :value="getProvider(p.key, 'apiKey')"
-                    @input="setProvider(p.key, 'apiKey', $event.target.value)" placeholder="sk-...">
+                    @input="setProvider(p.key, 'apiKey', $event.target.value)" placeholder="API Key">
                 </div>
-                <div class="input-group" x-show="p.hasBase">
-                  <label class="input-label">Base URL</label>
+                <div x-show="p.hasBase">
                   <input type="text" class="input-field" :value="getProvider(p.key, 'apiBase')"
-                    @input="setProvider(p.key, 'apiBase', $event.target.value)"
-                    :placeholder="p.basePlaceholder || 'Default'">
+                    @input="setProvider(p.key, 'apiBase', $event.target.value)" placeholder="Base URL (Optional)">
                 </div>
               </div>
             </div>
@@ -416,255 +484,159 @@
         </div>
       </div>
 
-      <!-- Channels View -->
+      <!-- Channels -->
       <div x-show="view === 'channels'">
-        <header class="mb-8">
-          <h2 class="text-2xl font-bold mb-2">Channels</h2>
-          <p class="text-gray-500 dark:text-gray-400 text-sm">Connect your bot to messaging platforms.</p>
+        <header class="mb-10">
+          <h1 class="text-3xl font-light tracking-tight text-white mb-2">Channels</h1>
+          <p class="text-gray-500">Connect to messaging platforms.</p>
         </header>
 
-        <div class="space-y-4">
-          <!-- Telegram -->
-          <div class="card" :class="{'ring-1 ring-blue-500/50 bg-blue-500/5': config.channels.telegram.enabled}">
-            <div class="flex items-start justify-between mb-4">
-              <div class="flex gap-4">
-                <div
-                  class="w-12 h-12 bg-blue-500 rounded-xl flex items-center justify-center text-white text-2xl shadow-lg shadow-blue-500/20">
-                  <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                    <path
-                      d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .24z" />
-                  </svg>
+        <div class="space-y-4 max-w-3xl">
+          <template x-for="(conf, key) in channelList" :key="key">
+            <div class="panel flex flex-col gap-4">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                  <div class="w-10 h-10 rounded-lg bg-[#222] flex items-center justify-center text-lg"
+                    x-text="getChannelIcon(key)"></div>
+                  <div>
+                    <h3 class="font-medium text-gray-200 capitalize" x-text="key"></h3>
+                    <p class="text-xs text-gray-600" x-text="getChannelDesc(key)"></p>
+                  </div>
                 </div>
-                <div>
-                  <h3 class="font-bold text-lg">Telegram</h3>
-                  <p class="text-xs text-gray-500 dark:text-gray-400">Connect via BotFather token.</p>
-                </div>
+                <input type="checkbox" class="toggle-checkbox" x-model="config.channels[key].enabled">
               </div>
-              <label class="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" class="sr-only peer" x-model="config.channels.telegram.enabled">
-                <div
-                  class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600">
-                </div>
-              </label>
-            </div>
 
-            <div x-show="config.channels.telegram.enabled" x-transition
-              class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 pt-4 border-t border-gray-100 dark:border-white/10">
-              <div class="input-group">
-                <label class="input-label">Bot Token</label>
-                <input type="password" class="input-field" x-model="config.channels.telegram.token"
-                  placeholder="Your Bot Token">
-              </div>
-              <div class="input-group">
-                <label class="input-label">Allowed User IDs</label>
-                <input type="text" class="input-field" :value="(config.channels.telegram.allowFrom || []).join(', ')"
-                  @input="config.channels.telegram.allowFrom = $event.target.value.split(',').map(s => s.trim()).filter(Boolean)"
-                  placeholder="123456, 789012">
-              </div>
-            </div>
-          </div>
-
-          <!-- WhatsApp -->
-          <div class="card" :class="{'ring-1 ring-emerald-500/50 bg-emerald-500/5': config.channels.whatsapp.enabled}">
-            <div class="flex items-start justify-between mb-4">
-              <div class="flex gap-4">
-                <div
-                  class="w-12 h-12 bg-emerald-500 rounded-xl flex items-center justify-center text-white text-2xl shadow-lg shadow-emerald-500/20">
-                  <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                    <path
-                      d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
-                  </svg>
-                </div>
+              <div x-show="config.channels[key].enabled"
+                class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-[#222]" x-transition>
+                <!-- Dynamic inputs based on channel type -->
+                <template x-for="(val, field) in getChannelFields(key)" :key="field">
+                  <div>
+                    <label class="input-label" x-text="field"></label>
+                    <input type="text" class="input-field" x-model="config.channels[key][field]">
+                  </div>
+                </template>
                 <div>
-                  <h3 class="font-bold text-lg">WhatsApp</h3>
-                  <p class="text-xs text-gray-500 dark:text-gray-400">Uses local bridge.</p>
+                  <label class="input-label">Allowed User IDs</label>
+                  <input type="text" class="input-field" :value="(config.channels[key].allowFrom || []).join(', ')"
+                    @input="config.channels[key].allowFrom = $event.target.value.split(',').map(s => s.trim()).filter(Boolean)">
                 </div>
-              </div>
-              <label class="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" class="sr-only peer" x-model="config.channels.whatsapp.enabled">
-                <div
-                  class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-emerald-300 dark:peer-focus:ring-emerald-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-emerald-600">
-                </div>
-              </label>
-            </div>
-            <div x-show="config.channels.whatsapp.enabled" x-transition
-              class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 pt-4 border-t border-gray-100 dark:border-white/10">
-              <div class="input-group">
-                <label class="input-label">Bridge URL</label>
-                <input type="text" class="input-field" x-model="config.channels.whatsapp.bridgeUrl"
-                  placeholder="ws://localhost:3001">
-              </div>
-              <div class="input-group">
-                <label class="input-label">Allowed Numbers</label>
-                <input type="text" class="input-field" :value="(config.channels.whatsapp.allowFrom || []).join(', ')"
-                  @input="config.channels.whatsapp.allowFrom = $event.target.value.split(',').map(s => s.trim()).filter(Boolean)"
-                  placeholder="123456789">
               </div>
             </div>
-          </div>
-
-          <!-- Feishu -->
-          <div class="card" :class="{'ring-1 ring-cyan-500/50 bg-cyan-500/5': config.channels.feishu.enabled}">
-            <div class="flex items-start justify-between mb-4">
-              <div class="flex gap-4">
-                <div
-                  class="w-12 h-12 bg-cyan-500 rounded-xl flex items-center justify-center text-white text-2xl shadow-lg shadow-cyan-500/20">
-                  <span>🐦</span>
-                </div>
-                <div>
-                  <h3 class="font-bold text-lg">Feishu</h3>
-                  <p class="text-xs text-gray-500 dark:text-gray-400">Enterprise collaboration.</p>
-                </div>
-              </div>
-              <label class="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" class="sr-only peer" x-model="config.channels.feishu.enabled">
-                <div
-                  class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-cyan-300 dark:peer-focus:ring-cyan-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-cyan-600">
-                </div>
-              </label>
-            </div>
-            <div x-show="config.channels.feishu.enabled" x-transition
-              class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 pt-4 border-t border-gray-100 dark:border-white/10">
-              <div class="input-group">
-                <label class="input-label">App ID</label>
-                <input type="text" class="input-field" x-model="config.channels.feishu.appId">
-              </div>
-              <div class="input-group">
-                <label class="input-label">App Secret</label>
-                <input type="password" class="input-field" x-model="config.channels.feishu.appSecret">
-              </div>
-              <div class="input-group">
-                <label class="input-label">Encrypt Key</label>
-                <input type="password" class="input-field" x-model="config.channels.feishu.encryptKey">
-              </div>
-              <div class="input-group">
-                <label class="input-label">Verification Token</label>
-                <input type="password" class="input-field" x-model="config.channels.feishu.verificationToken">
-              </div>
-            </div>
-          </div>
+          </template>
         </div>
       </div>
 
-      <!-- Settings View -->
+      <!-- Settings -->
       <div x-show="view === 'settings'">
-        <header class="mb-8">
-          <h2 class="text-2xl font-bold mb-2">Settings</h2>
-          <p class="text-gray-500 dark:text-gray-400 text-sm">System capabilities and agent defaults.</p>
+        <header class="mb-10">
+          <h1 class="text-3xl font-light tracking-tight text-white mb-2">Settings</h1>
+          <p class="text-gray-500">System configuration and defaults.</p>
         </header>
 
-        <div class="space-y-6">
-          <div class="card">
-            <h3 class="font-semibold text-lg mb-4">Agent Behaviour</h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div class="input-group">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl">
+          <div class="panel">
+            <h3 class="panel-header">Agent Behaviour</h3>
+            <div class="space-y-4">
+              <div>
                 <label class="input-label">Default Model</label>
                 <input type="text" class="input-field" x-model="config.agents.defaults.model">
               </div>
-              <div class="input-group">
+              <div>
                 <label class="input-label">Max Tokens</label>
                 <input type="number" class="input-field" x-model.number="config.agents.defaults.maxTokens">
               </div>
-              <div class="input-group">
+              <div>
                 <label class="input-label">Temperature</label>
                 <input type="number" step="0.1" class="input-field" x-model.number="config.agents.defaults.temperature">
-                <p class="text-[10px] text-gray-500 mt-1">0.0 = deterministic, 1.0 = creative</p>
-              </div>
-              <div class="input-group">
-                <label class="input-label">Max Tool Iterations</label>
-                <input type="number" class="input-field" x-model.number="config.agents.defaults.maxToolIterations">
               </div>
             </div>
           </div>
 
-          <div class="card">
-            <h3 class="font-semibold text-lg mb-4">Tools & Runtime</h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div class="input-group">
+          <div class="panel">
+            <h3 class="panel-header">Tools & Environment</h3>
+            <div class="space-y-4">
+              <div>
                 <label class="input-label">Brave Search API Key</label>
                 <input type="password" class="input-field" x-model="config.tools.web.search.apiKey">
               </div>
-              <div class="input-group">
+              <div>
                 <label class="input-label">Execution Timeout (s)</label>
                 <input type="number" class="input-field" x-model.number="config.tools.exec.timeout">
               </div>
-              <div class="md:col-span-2">
-                <label class="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox"
-                    class="rounded bg-gray-100 border-gray-300 dark:bg-gray-800 dark:border-gray-600"
-                    x-model="config.tools.exec.restrictToWorkspace">
-                  <span class="text-sm">Restrict code execution to workspace</span>
-                </label>
-              </div>
+              <label class="flex items-center gap-3 pt-2">
+                <input type="checkbox" class="toggle-checkbox" x-model="config.tools.exec.restrictToWorkspace"
+                  style="width: 32px; height: 18px;">
+                <span class="text-sm text-gray-400">Restrict File Access</span>
+              </label>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Logs View -->
+      <!-- Logs -->
       <div x-show="view === 'logs'">
-        <header class="mb-4 flex items-center justify-between">
-          <div>
-            <h2 class="text-2xl font-bold mb-2">System Logs</h2>
-            <p class="text-gray-500 dark:text-gray-400 text-sm">Real-time gateway output.</p>
-          </div>
-          <button class="text-xs text-gray-500 hover:text-white" @click="loadLogs()">Refresh</button>
+        <header class="mb-6 flex items-center justify-between">
+          <h1 class="text-3xl font-light tracking-tight text-white">System Logs</h1>
+          <button class="text-xs text-blue-500 hover:text-white transition-colors" @click="logs=[]; loadLogs()">Refresh
+            / Clear</button>
         </header>
-
         <div class="terminal" x-ref="logViewer">
-          <template x-for="(line, i) in logs" :key="i">
-            <div class="whitespace-pre-wrap break-all hover:bg-white/5 py-0.5" x-text="line"></div>
+          <template x-for="line in logs">
+            <div class="log-line" x-text="line"></div>
           </template>
-          <div x-show="logs.length === 0" class="text-gray-600 text-center mt-20">Waiting for logs...</div>
+          <div x-show="logs.length === 0" class="h-full flex items-center justify-center opacity-30">No logs available
+          </div>
         </div>
       </div>
 
     </main>
   </div>
 
-  <!-- Toast -->
-  <div x-show="toast.show" x-transition:enter="transition ease-out duration-300"
-    x-transition:enter-start="translate-y-2 opacity-0" x-transition:enter-end="translate-y-0 opacity-100"
-    x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100"
-    x-transition:leave-end="opacity-0"
-    class="fixed bottom-6 right-6 px-4 py-3 rounded-xl text-sm font-medium text-white shadow-2xl z-50 flex items-center gap-3 border border-white/10"
-    :class="toast.type === 'error' ? 'bg-red-600' : 'bg-gray-800'">
-    <div x-show="toast.type === 'success'" class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div>
-    <span x-text="toast.message"></span>
-  </div>
-
   <script>
     function app() {
       return {
-        view: 'dashboard',
-        sidebarOpen: true,
+        view: 'overview',
         config: defaultConfig(),
         status: {},
         logs: [],
         saving: false,
-        restartAfterSave: true,
-        toast: { show: false, message: '', type: 'success' },
 
+        // Computed Helpers
+        get hasProvider() { return Object.values(this.status.providers || {}).some(p => p.configured); },
+        get hasChannel() { return Object.values(this.status.channels || {}).some(c => c.enabled); },
+        get isSetupComplete() { return this.hasProvider && this.hasChannel; },
+        get activeProviders() { return Object.entries(this.status.providers || {}).filter(([, v]) => v.configured).map(([k]) => k); },
+        get activeChannels() { return Object.entries(this.status.channels || {}).filter(([, v]) => v.enabled).map(([k]) => k); },
+
+        // Lists
         providerList: [
           { key: 'anthropic', label: 'Anthropic', hasBase: false },
-          { key: 'openai', label: 'OpenAI', hasBase: true, basePlaceholder: 'https://api.openai.com/v1' },
-          { key: 'openrouter', label: 'OpenRouter', hasBase: true, basePlaceholder: 'https://openrouter.ai/api/v1' },
+          { key: 'openai', label: 'OpenAI', hasBase: true },
+          { key: 'openrouter', label: 'OpenRouter', hasBase: true },
           { key: 'deepseek', label: 'DeepSeek', hasBase: false },
           { key: 'groq', label: 'Groq', hasBase: false },
           { key: 'gemini', label: 'Gemini', hasBase: false },
-          { key: 'zhipu', label: 'Zhipu', hasBase: true },
-          { key: 'vllm', label: 'vLLM', hasBase: true, basePlaceholder: 'http://localhost:8000/v1' },
         ],
 
-        get hasProvider() { return Object.values(this.status.providers || {}).some(p => p.configured); },
-        get hasChannel() { return Object.values(this.status.channels || {}).some(c => c.enabled); },
-        get activeProviders() { return Object.entries(this.status.providers || {}).filter(([, v]) => v.configured).map(([k]) => k); },
-        get activeChannels() { return Object.entries(this.status.channels || {}).filter(([, v]) => v.enabled).map(([k]) => k); },
+        channelList: {
+          telegram: { icon: '✈️', desc: 'BotFather Token', fields: { token: '' } },
+          whatsapp: { icon: '💬', desc: 'Local Bridge', fields: { bridgeUrl: '' } },
+          discord: { icon: '🎮', desc: 'Bot Token', fields: { token: '', appId: '' } },
+          slack: { icon: '💼', desc: 'App Token', fields: { token: '', signingSecret: '' } },
+          feishu: { icon: '🐦', desc: 'Lark/Feishu App', fields: { appId: '', appSecret: '' } },
+          dingtalk: { icon: '🏢', desc: 'DingTalk Robot', fields: { clientId: '', clientSecret: '' } },
+          email: { icon: '📧', desc: 'SMTP Config', fields: { host: '', port: '', user: '', pass: '' } },
+          mochat: { icon: '🐱', desc: 'WeChat Bot', fields: { apiUrl: '' } },
+          qq: { icon: '🐧', desc: 'QQ Bot', fields: { token: '', appId: '' } }
+        },
+
+        getChannelIcon(key) { return this.channelList[key]?.icon || '#'; },
+        getChannelDesc(key) { return this.channelList[key]?.desc || ''; },
+        getChannelFields(key) { return this.channelList[key]?.fields || {}; },
 
         isProviderConfigured(key) {
           return this.status.providers?.[key]?.configured || (this.config.providers?.[key]?.apiKey?.length > 0);
         },
-
         getProvider(key, field) { return this.config.providers?.[key]?.[field] || ''; },
         setProvider(key, field, value) {
           if (!this.config.providers[key]) this.config.providers[key] = {};
@@ -672,44 +644,39 @@
         },
 
         async init() {
-          await this.loadConfig();
-          await this.loadStatus();
-          await this.loadLogs();
-          setInterval(() => this.loadStatus(), 5000);
-          setInterval(() => this.loadLogs(), 3000);
-
-          // Responsive check
-          if (window.innerWidth < 768) this.sidebarOpen = false;
+          this.loadConfig();
+          this.loadStatus();
+          this.loadLogs();
+          setInterval(() => this.loadStatus(), 3000);
+          setInterval(() => this.loadLogs(), 2000);
         },
 
         async loadConfig() {
           try {
             const res = await fetch('/api/config');
-            if (res.ok) this.config = mergeDeep(defaultConfig(), await res.json());
+            if (res.ok) {
+              const data = await res.json();
+              this.config = mergeDeep(defaultConfig(), data);
+            }
           } catch (e) { }
         },
 
         async saveConfig() {
           this.saving = true;
           try {
-            const payload = JSON.parse(JSON.stringify(this.config));
-            payload._restartGateway = this.restartAfterSave;
-            const res = await fetch('/api/config', {
+            // Ensure all channels exist in config structure before saving
+            for (const key of Object.keys(this.channelList)) {
+              if (!this.config.channels[key]) this.config.channels[key] = { enabled: false };
+            }
+
+            await fetch('/api/config', {
               method: 'PUT',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(payload),
+              body: JSON.stringify(this.config)
             });
-            if (res.ok) {
-              this.showToast('Settings saved successfully');
-              await this.loadConfig();
-              await this.loadStatus();
-            } else {
-              const err = await res.json();
-              this.showToast(err.error || 'Check console for details', 'error');
-            }
-          } catch (e) {
-            this.showToast('Connection failed', 'error');
-          }
+            await this.loadConfig();
+            await this.loadStatus();
+          } catch (e) { }
           this.saving = false;
         },
 
@@ -724,57 +691,32 @@
           try {
             const res = await fetch('/api/logs');
             if (res.ok) {
-              const data = await res.json();
-              const wasAtBottom = this.$refs.logViewer && (this.$refs.logViewer.scrollTop + this.$refs.logViewer.clientHeight >= this.$refs.logViewer.scrollHeight - 50);
-              this.logs = data.lines;
-              if (wasAtBottom && this.$refs.logViewer) {
-                this.$nextTick(() => { this.$refs.logViewer.scrollTop = this.$refs.logViewer.scrollHeight; });
-              }
+              const d = await res.json();
+              this.logs = d.lines;
             }
           } catch (e) { }
         },
 
-        async startGateway() { await this.apiAction('start', 'Starting gateway...'); },
-        async stopGateway() { await this.apiAction('stop', 'Stopping gateway...'); },
-        async restartGateway() { await this.apiAction('restart', 'Restarting gateway...'); },
-
-        async apiAction(action, msg) {
-          await fetch(`/api/gateway/${action}`, { method: 'POST' });
-          this.showToast(msg);
-          setTimeout(() => this.loadStatus(), 2000);
-        },
-
-        formatUptime(seconds) {
-          if (seconds == null) return '';
-          const h = Math.floor(seconds / 3600);
-          const m = Math.floor((seconds % 3600) / 60);
-          return h > 0 ? `${h}h ${m}m` : `${m}m ${seconds % 60}s`;
-        },
-
-        showToast(message, type = 'success') {
-          this.toast = { show: true, message, type };
-          setTimeout(() => { this.toast.show = false; }, 3000);
-        }
+        async apiAction(action) { await fetch(`/api/gateway/${action}`, { method: 'POST' }); this.loadStatus(); },
+        startGateway() { this.apiAction('start'); },
+        stopGateway() { this.apiAction('stop'); }
       };
     }
 
     function defaultConfig() {
       return {
-        agents: { defaults: { workspace: '~/.nanobot/workspace', model: 'anthropic/claude-opus-4-5', maxTokens: 8192, temperature: 0.7, maxToolIterations: 20 } },
-        channels: {
-          telegram: { enabled: false, token: '', allowFrom: [], proxy: null },
-          whatsapp: { enabled: false, bridgeUrl: 'ws://localhost:3001', allowFrom: [] },
-          feishu: { enabled: false, appId: '', appSecret: '', encryptKey: '', verificationToken: '', allowFrom: [] },
-        },
+        agents: { defaults: { model: 'anthropic/claude-3-5-sonnet-20240620', maxTokens: 4096, temperature: 0.7 } },
         providers: {},
-        gateway: { host: '0.0.0.0', port: 18790 },
-        tools: { web: { search: { apiKey: '', maxResults: 5 } }, exec: { timeout: 60, restrictToWorkspace: false } },
+        channels: {},
+        tools: { web: { search: { apiKey: '' } }, exec: { timeout: 30 } }
       };
     }
+
     function mergeDeep(target, source) {
+      if (!source) return target;
       const output = { ...target };
       for (const key of Object.keys(source)) {
-        if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
+        if (source[key] instanceof Object && !Array.isArray(source[key])) {
           output[key] = mergeDeep(target[key] || {}, source[key]);
         } else {
           output[key] = source[key];
