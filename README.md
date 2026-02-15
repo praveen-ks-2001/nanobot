@@ -1,78 +1,79 @@
-# nanobot Railway Template
+# Nanobot Railway Template
 
-One-click deploy [nanobot](https://github.com/nano-bot/nanobot) on [Railway](https://railway.app) with a web-based config UI and status dashboard.
+One-click deploy [nanobot](https://github.com/nano-bot/nanobot) on [Railway](https://railway.app) with a modern, dark-themed web configuration UI and status dashboard.
 
 [![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/template/nanobot)
 
-## What you get
+## Features
 
-- **Web Config UI** — configure providers, channels, tools, and agent defaults from your browser
-- **Status Dashboard** — monitor gateway state, uptime, provider/channel status, and live logs
-- **Gateway Management** — start, stop, and restart the nanobot gateway from the UI
-- **Basic Auth** — password-protected admin panel
-- **Persistent Storage** — config and data survive container restarts via Railway volume
+- **Modern Web UI**: A sleek, dark-themed interface with sidebar navigation for easy management.
+- **Overview Dashboard**:
+    - **System Status**: Real-time visual indicator of the Gateway state.
+    - **Setup Workflow**: A step-by-step visual guide to help you get started (Add Provider -> Add Channel -> Save & Start).
+    - **Live Counters**: Monitor active providers and enabled channels at a glance.
+- **AI Providers Management**: Configure API keys for Anthropic, OpenAI, OpenRouter, DeepSeek, Groq, Gemini, Zhipu, and vLLM via a card-based interface.
+- **Channel Configuration**: Easily enable and configure messaging channels like Telegram, WhatsApp, and Feishu with toggle switches.
+- **System Controls**: Start, stop, and restart the Nanobot gateway directly from the UI.
+- **Live Logs**: Built-in terminal viewer to monitor system logs in real-time.
+- **Secure**: Password-protected admin panel with Basic Auth.
 
 ## Quick Start
 
 ### Deploy to Railway
 
-1. Click the "Deploy on Railway" button above
-2. Set the `ADMIN_PASSWORD` environment variable (or a random one will be generated and printed to logs)
-3. Attach a volume mounted at `/data`
-4. Open your app URL — you'll be prompted for credentials (default username: `admin`)
-5. Configure at least one provider API key and hit Save
-6. Once setup is complete, remove the public endpoint from your Railway service — the web UI is only needed for initial configuration and nanobot operates entirely through its configured channels (Telegram, WhatsApp, etc.)
+1.  Click the "Deploy on Railway" button above.
+2.  Set the `ADMIN_PASSWORD` environment variable (or a random one will be generated).
+3.  Attach a volume mounted at `/data` for persistent storage.
+4.  **Open your app URL**: Log in with your credentials (default username: `admin`).
+5.  **Follow the On-screen Setup Workflow**:
+    -   **Step 1**: Go to **AI Providers** and configure at least one API key.
+    -   **Step 2**: Go to **Channels** and enable a messaging platform (e.g., Telegram).
+    -   **Step 3**: Click **Save Changes** and then **Start** to launch the gateway.
+    -   **Step 4**: Verify by sending a message to your bot.
 
-### Run Locally with Docker
+### Run Locally
+
+You can run the template locally using Docker:
 
 ```bash
 docker build -t nanobot .
 docker run --rm -it -p 8080:8080 -e PORT=8080 -e ADMIN_PASSWORD=changeme -v nanobot-data:/data nanobot
 ```
 
-Open `http://localhost:8080` and log in with `admin` / `changeme`.
+Open `http://localhost:8080` and log in with username `admin` and password `changeme`.
 
 ## Environment Variables
 
 | Variable | Default | Description |
-|----------|---------|-------------|
-| `PORT` | `8080` | Web server port |
-| `ADMIN_USERNAME` | `admin` | Basic auth username |
-| `ADMIN_PASSWORD` | *(generated)* | Basic auth password. If unset, a random password is generated and printed to stdout |
-
-Nanobot config can also be set via environment variables with the `NANOBOT_` prefix (e.g. `NANOBOT_PROVIDERS__ANTHROPIC__API_KEY`), but the web UI is the recommended way to manage configuration.
+| :--- | :--- | :--- |
+| `PORT` | `8080` | Web server port. |
+| `ADMIN_USERNAME` | `admin` | Basic auth username. |
+| `ADMIN_PASSWORD` | *(generated)* | Basic auth password. If unset, a random password is generated and printed to stdout. |
 
 ## Architecture
 
-```
-Railway Container
-├── Python Web Server (Starlette + uvicorn)
-│   ├── / — Config editor + status dashboard
-│   ├── /health — Health check (no auth)
-│   └── /api/* — Config, status, logs, gateway control
-└── nanobot gateway — managed as async subprocess
-```
+The application runs a lightweight Python web server using Starlette and Uvicorn, which manages the Nanobot gateway as a subprocess.
 
-The web server runs on `$PORT` and manages the nanobot gateway as a child process. Gateway stdout/stderr is captured into a ring buffer and viewable in the dashboard.
+-   **Frontend**: HTML5 + Tailwind CSS + Alpine.js (Single `index.html` template).
+-   **Backend**: Python Starlette server handling API requests and managing the Gateway process.
+-   **Storage**: Configuration is saved to JSON files in the `/data` volume.
 
 ## API Endpoints
 
-| Method | Path | Auth | Description |
-|--------|------|------|-------------|
-| `GET` | `/` | Yes | Web UI |
-| `GET` | `/health` | No | Health check |
-| `GET` | `/api/config` | Yes | Get config (secrets masked) |
-| `PUT` | `/api/config` | Yes | Save config |
-| `GET` | `/api/status` | Yes | Gateway, provider, channel status |
-| `GET` | `/api/logs` | Yes | Recent gateway log lines |
-| `POST` | `/api/gateway/start` | Yes | Start gateway |
-| `POST` | `/api/gateway/stop` | Yes | Stop gateway |
-| `POST` | `/api/gateway/restart` | Yes | Restart gateway |
+The Web UI communicates with the backend via a REST API:
 
-## Supported Providers
+| Method | Path | Description |
+| :--- | :--- | :--- |
+| `GET` | `/api/config` | Get current configuration (secrets masked). |
+| `PUT` | `/api/config` | Save new configuration. |
+| `GET` | `/api/status` | Get gateway, provider, and channel status. |
+| `GET` | `/api/logs` | Fetch recent log lines. |
+| `POST` | `/api/gateway/start` | Start the gateway process. |
+| `POST` | `/api/gateway/stop` | Stop the gateway process. |
+| `POST` | `/api/gateway/restart` | Restart the gateway process. |
 
-Anthropic, OpenAI, OpenRouter, DeepSeek, Groq, Gemini, Zhipu, vLLM
+## Supported Integrations
 
-## Supported Channels
+**AI Providers**: Anthropic, OpenAI, OpenRouter, DeepSeek, Groq, Gemini, Zhipu, vLLM.
 
-Telegram, WhatsApp (via bridge), Feishu/Lark
+**Channels**: Telegram, WhatsApp (via bridge), Feishu/Lark.
