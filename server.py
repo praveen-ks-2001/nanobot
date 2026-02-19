@@ -24,8 +24,6 @@ from starlette.routing import Route
 from starlette.templating import Jinja2Templates
 
 from nanobot.config.loader import (
-    convert_keys,
-    convert_to_camel,
     load_config,
     save_config,
 )
@@ -211,7 +209,7 @@ async def api_config_get(request: Request):
     if auth_err:
         return auth_err
     config = load_config()
-    data = convert_to_camel(config.model_dump())
+    data = config.model_dump(by_alias=True)
     return JSONResponse(mask_secrets(data))
 
 
@@ -230,17 +228,16 @@ async def api_config_put(request: Request):
 
         async with config_lock:
             existing_config = load_config()
-            existing_data = convert_to_camel(existing_config.model_dump())
+            existing_data = existing_config.model_dump(by_alias=True)
 
             merged = merge_secrets(body, existing_data)
-            snake_data = convert_keys(merged)
 
             try:
-                new_config = Config.model_validate(snake_data)
+                new_config = Config.model_validate(merged)
             except Exception as e:
                 err_msg = str(e)
                 for field in SECRET_FIELDS:
-                    for val in _collect_secret_values(snake_data, field):
+                    for val in _collect_secret_values(merged, field):
                         if val and len(val) > 3:
                             err_msg = err_msg.replace(val, "***")
                 return JSONResponse({"error": f"Validation error: {err_msg}"}, status_code=400)

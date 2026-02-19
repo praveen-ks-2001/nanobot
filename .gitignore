@@ -2,7 +2,5 @@
 *.pyc
 __pycache__/
 .DS_Store
-<<<<<<< HEAD
-=======
 temp
->>>>>>> cd587988701e84b12211f3c39c50814a3aac1421
+nanobot-main
