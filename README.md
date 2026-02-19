@@ -1,79 +1,71 @@
-# Nanobot Railway Template
+![Nanobot](https://github.com/HKUDS/nanobot/raw/main/nanobot_logo.png)
 
-One-click deploy [nanobot](https://github.com/nano-bot/nanobot) on [Railway](https://railway.app) with a modern, dark-themed web configuration UI and status dashboard.
+# Deploy and Host Nanobot - OpenClaw Alternative (Open Source ) on Railway
 
-[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/template/nanobot)
+🐈  [nanobot](https://github.com/HKUDS/nanobot) is an ultra-lightweight personal AI assistant inspired by [OpenClaw](https://railway.com/deploy/openclaw-prev-clawdbot-moltbot-self-host). It's positioned as an alternative to OpenClaw, offering a simpler setup with similar multi-provider support. This Railway template gets you up and running with a one-click deployment.
 
-## Features
+## Architecture
+![Architecture](https://github.com/HKUDS/nanobot/raw/main/nanobot_arch.png)
 
-- **Modern Web UI**: A sleek, dark-themed interface with sidebar navigation for easy management.
-- **Overview Dashboard**:
-    - **System Status**: Real-time visual indicator of the Gateway state.
-    - **Setup Workflow**: A step-by-step visual guide to help you get started (Add Provider -> Add Channel -> Save & Start).
-    - **Live Counters**: Monitor active providers and enabled channels at a glance.
-- **AI Providers Management**: Configure API keys for Anthropic, OpenAI, OpenRouter, DeepSeek, Groq, Gemini, Zhipu, and vLLM via a card-based interface.
-- **Channel Configuration**: Easily enable and configure messaging channels like Telegram, WhatsApp, and Feishu with toggle switches.
-- **System Controls**: Start, stop, and restart the Nanobot gateway directly from the UI.
-- **Live Logs**: Built-in terminal viewer to monitor system logs in real-time.
-- **Secure**: Password-protected admin panel with Basic Auth.
 
-## Quick Start
+## About Hosting Nanobot - OpenClaw Alternative (Open Source )
+Hosting Nanobot on Railway means running it as a Docker-based backend service. The deployment includes persistent storage for logs and configuration, an admin dashboard for managing API keys and routes, and a gateway process that handles incoming requests. You'll configure environment variables for admin access and LLM provider credentials. Railway handles the container orchestration and gives you a public URL automatically. 
+**Note that Nanobot is not a chat interface—it's a backend API gateway that your applications send requests to.**
 
-### Deploy to Railway
+## Common Use Cases
+**📅 Smart Daily Routine Manager**
+![Architecture](https://github.com/HKUDS/nanobot/raw/main/case/scedule.gif)
 
-1.  Click the "Deploy on Railway" button above.
-2.  Set the `ADMIN_PASSWORD` environment variable (or a random one will be generated).
-3.  Attach a volume mounted at `/data` for persistent storage.
-4.  **Open your app URL**: Log in with your credentials (default username: `admin`).
-5.  **Follow the On-screen Setup Workflow**:
-    -   **Step 1**: Go to **AI Providers** and configure at least one API key.
-    -   **Step 2**: Go to **Channels** and enable a messaging platform (e.g., Telegram).
-    -   **Step 3**: Click **Save Changes** and then **Start** to launch the gateway.
-    -   **Step 4**: Verify by sending a message to your bot.
+**📈 24/7 Real-Time Market Analysis**
+![Market Analyzer](https://github.com/HKUDS/nanobot/raw/main/case/search.gif)
 
-### Run Locally
+ 
+## Dependencies for Nanobot - OpenClaw Alternative (Open Source ) Hosting
 
-You can run the template locally using Docker:
+* Railway account (free tier works for testing, paid for production)
+* API keys from at least one LLM provider (OpenAI, Anthropic, etc.)
+* Telegram/Discord/etc. connection details
 
-```bash
-docker build -t nanobot .
-docker run --rm -it -p 8080:8080 -e PORT=8080 -e ADMIN_PASSWORD=changeme -v nanobot-data:/data nanobot
-```
+### Deployment Dependencies
 
-Open `http://localhost:8080` and log in with username `admin` and password `changeme`.
+* https://railway.app
+* https://platform.openai.com
+* https://console.anthropic.com
+* https://github.com/HKUDS/nanobot (or actual repo URL if different)
 
 ## Environment Variables
 
-| Variable | Default | Description |
-| :--- | :--- | :--- |
-| `PORT` | `8080` | Web server port. |
-| `ADMIN_USERNAME` | `admin` | Basic auth username. |
-| `ADMIN_PASSWORD` | *(generated)* | Basic auth password. If unset, a random password is generated and printed to stdout. |
+**PORT** - The port Nanobot listens on.
 
-## Architecture
+**ADMIN_USERNAME** - Username for accessing the admin dashboard.
 
-The application runs a lightweight Python web server using Starlette and Uvicorn, which manages the Nanobot gateway as a subprocess.
+**ADMIN_PASSWORD** - Password for admin dashboard access.
 
--   **Frontend**: HTML5 + Tailwind CSS + Alpine.js (Single `index.html` template).
--   **Backend**: Python Starlette server handling API requests and managing the Gateway process.
--   **Storage**: Configuration is saved to JSON files in the `/data` volume.
 
-## API Endpoints
+## Nanobot vs OpenClaw Comparison
 
-The Web UI communicates with the backend via a REST API:
+**Nanobot** is an AI gateway. It's lighter weight and easier to self-host, with a simple admin UI for configuration. Good for developers who want a straightforward way to abstract away LLM providers.
 
-| Method | Path | Description |
-| :--- | :--- | :--- |
-| `GET` | `/api/config` | Get current configuration (secrets masked). |
-| `PUT` | `/api/config` | Save new configuration. |
-| `GET` | `/api/status` | Get gateway, provider, and channel status. |
-| `GET` | `/api/logs` | Fetch recent log lines. |
-| `POST` | `/api/gateway/start` | Start the gateway process. |
-| `POST` | `/api/gateway/stop` | Stop the gateway process. |
-| `POST` | `/api/gateway/restart` | Restart the gateway process. |
+**OpenClaw** is a more full-featured AI agent framework with tool calling, memory management, and complex workflow orchestration built in. It's designed for building autonomous agents that need to maintain state and execute multi-step tasks.
 
-## Supported Integrations
+## FAQ
 
-**AI Providers**: Anthropic, OpenAI, OpenRouter, DeepSeek, Groq, Gemini, Zhipu, vLLM.
+**Can I use Nanobot without Railway?**  
+Yes. Nanobot is open source and runs anywhere Docker works. Railway just makes deployment faster with automatic container hosting and environment management.
 
-**Channels**: Telegram, WhatsApp (via bridge), Feishu/Lark.
+**How much does it cost to host Nanobot on Railway?**  
+Railway's free tier includes $5 credit per month. Basic Nanobot deployments typically cost $5-15/month depending on traffic. LLM API costs are separate and billed by your providers.
+
+**Can I add multiple LLM providers to one Nanobot instance?**  
+Yes, that's the main point. You configure multiple providers (OpenAI, Anthropic, Cohere, etc.) and route requests between them based on your rules.
+
+**Do I need coding knowledge to deploy nanobot?**  
+Not really. The Railway template handles deployment automatically. You just need to set environment variables for your API keys. Managing routing rules through the admin dashboard is point-and-click.
+
+
+## Why Deploy Nanobot - OpenClaw Alternative (Open Source ) on Railway?
+
+
+Railway is a singular platform to deploy your infrastructure stack. Railway will host your infrastructure so you don't have to deal with configuration, while allowing you to vertically and horizontally scale it.
+
+By deploying Nanobot - OpenClaw Alternative (Open Source ) on Railway, you are one step closer to supporting a complete full-stack application with minimal burden. Host your servers, databases, AI agents, and more on Railway.
